@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aura Scanner</title>
+<meta name="theme-color" content="#120b1f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Aura">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<!-- ADSENSE : colle ici ton script AdSense une fois le site approuvé -->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f2fb;--fg:#1b1230;--mut:#6b5f82;--card:#ffffff;--line:#e3dbf0;--a1:#8b5cf6;--a2:#ec4899;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#120b1f;--fg:#f3edff;--mut:#a99bc4;--card:#1d1330;--line:#33254d}}
+:root[data-theme="dark"]{--bg:#120b1f;--fg:#f3edff;--mut:#a99bc4;--card:#1d1330;--line:#33254d}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh;transition:background .4s}
+main{max-width:480px;margin:0 auto;padding:20px 18px 40px}
+h1{font-size:44px;line-height:1;margin:18px 0 10px;font-weight:800;letter-spacing:-1.5px}
+h1 span{background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+p{line-height:1.5;margin:0 0 14px}
+.mut{color:var(--mut)}
+input[type=text]{width:100%;font:inherit;font-size:20px;padding:16px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--fg);margin:8px 0 16px}
+input:focus,button:focus-visible{outline:3px solid var(--a1);outline-offset:2px}
+.btn{display:block;width:100%;font:inherit;font-weight:700;font-size:18px;padding:16px;border:0;border-radius:16px;color:#fff;background:linear-gradient(90deg,var(--a1),var(--a2));cursor:pointer}
+.btn.alt{background:var(--card);color:var(--fg);border:2px solid var(--line);margin-top:10px}
+.opt{display:block;width:100%;text-align:left;font:inherit;font-size:17px;padding:14px 16px;margin:0 0 10px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+.opt:active{border-color:var(--a1)}
+.bar{height:6px;background:var(--line);border-radius:3px;margin:6px 0 22px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--a1),var(--a2));transition:width .3s}
+.orb{width:210px;height:210px;border-radius:50%;margin:20px auto;background:radial-gradient(circle at 35% 30%,#fff8,transparent 40%),radial-gradient(circle,var(--a1),var(--a2));box-shadow:0 0 70px 20px var(--a1);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.07)}}
+@media (prefers-reduced-motion:reduce){.orb{animation:none}}
+.score{font-size:76px;font-weight:800;text-align:center;line-height:1;letter-spacing:-3px}
+.name{font-size:30px;font-weight:800;text-align:center;margin:6px 0}
+.tag{text-align:center;font-size:18px}
+.row{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin:10px 0}
+.lock{position:relative;overflow:hidden}
+.lock p{filter:blur(6px);user-select:none}
+.lock b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ad{border:2px dashed var(--line);border-radius:12px;text-align:center;padding:18px;margin:22px 0;color:var(--mut);font-size:14px}
+.hide{display:none}
+.modal{position:fixed;inset:0;background:#000a;display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.modal>div{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom,0px))}
+.modal h2{margin:0 0 8px;font-size:26px}
+.price{font-size:34px;font-weight:800}
+</style>
+</head>
+<body>
+<main>
+
+<section id="home">
+  <h1>Quelle est ta <span>aura</span> ?</h1>
+  <p class="mut">Scanne ton énergie en 20 secondes. Compare ton score avec tes potes.</p>
+  <label for="prenom" class="mut">Ton prénom</label>
+  <input id="prenom" type="text" maxlength="20" autocomplete="given-name" placeholder="Ex : Lucas">
+  <button class="btn" id="go">Scanner mon aura</button>
+  <p class="mut" id="left" style="text-align:center;margin-top:12px"></p>
+  <div class="ad">Espace publicitaire (bannière)</div>
+</section>
+
+<section id="quiz" class="hide">
+  <div class="bar"><i id="prog"></i></div>
+  <h1 id="q" style="font-size:30px"></h1>
+  <div id="opts"></div>
+</section>
+
+<section id="scan" class="hide" style="text-align:center">
+  <div class="orb"></div>
+  <h1 style="font-size:28px">Lecture de ton énergie…</h1>
+</section>
+
+<section id="res" class="hide">
+  <div class="orb" style="width:150px;height:150px"></div>
+  <div class="mut tag" id="rname"></div>
+  <div class="score" id="rscore"></div>
+  <div class="name" id="rtitle"></div>
+  <p class="tag" id="rtag"></p>
+  <div class="row"><b>Ton point faible</b><p id="rflag" style="margin:6px 0 0"></p></div>
+  <div class="row"><b>Aura la plus compatible</b><p id="rmatch" style="margin:6px 0 0"></p></div>
+  <div class="row lock" id="prem"><p>Ton analyse détaillée : amour, argent, carrière, et le meilleur jour de la semaine pour te lancer.</p><b>Verrouillé</b></div>
+  <button class="btn" id="share">Partager mon aura</button>
+  <button class="btn alt" id="unlock">Débloquer l'analyse complète</button>
+  <button class="btn alt" id="again">Refaire un scan</button>
+  <div class="ad">Espace publicitaire (interstitiel après le résultat)</div>
+</section>
+
+</main>
+
+<div class="modal hide" id="paywall" role="dialog" aria-modal="true">
+  <div>
+    <h2>Aura Premium</h2>
+    <p class="mut">Analyse complète, scans illimités, sans pub, cartes sans filigrane.</p>
+    <div class="price">2,99 € <span class="mut" style="font-size:16px;font-weight:500">/ semaine</span></div>
+    <p class="mut" style="font-size:13px;margin-top:6px">Paiement sécurisé par Stripe. Résiliable à tout moment.</p>
+    <button class="btn" id="buy">S'abonner</button>
+    <button class="btn alt" id="close">Plus tard</button>
+  </div>
+</div>
+
+<script>
+var AURAS=[
+{n:"Rouge Feu",t:"Tu entres, la pièce s'allume.",f:"Tu ne sais pas perdre une discussion.",m:"Bleu Glacial",c:["#ef4444","#f97316"]},
+{n:"Orange Solaire",t:"Le pote que tout le monde appelle en premier.",f:"Tu dis oui à tout, puis tu disparais.",m:"Indigo Mystère",c:["#f97316","#facc15"]},
+{n:"Jaune Éclat",t:"Ton humour sauve toutes les soirées.",f:"Tu ris pour éviter de parler sérieusement.",m:"Vert Zen",c:["#facc15","#84cc16"]},
+{n:"Vert Zen",t:"Calme dehors, plan de domination dedans.",f:"Tu gardes tout pour toi jusqu'à l'explosion.",m:"Jaune Éclat",c:["#22c55e","#14b8a6"]},
+{n:"Bleu Glacial",t:"Peu de mots, beaucoup d'impact.",f:"Tu laisses les messages en vu trop longtemps.",m:"Rouge Feu",c:["#38bdf8","#6366f1"]},
+{n:"Indigo Mystère",t:"Personne ne sait vraiment ce que tu penses.",f:"Tu analyses tout et tu ne passes jamais à l'action.",m:"Orange Solaire",c:["#6366f1","#7c3aed"]},
+{n:"Violet Roi",t:"Né pour diriger, même sans le dire.",f:"Tu veux que tout soit parfait, donc tu repousses.",m:"Rose Chaos",c:["#8b5cf6","#d946ef"]},
+{n:"Rose Chaos",t:"Imprévisible, mais tellement attachant.",f:"Tu changes d'avis toutes les cinq minutes.",m:"Violet Roi",c:["#ec4899","#f43f5e"]}];
+var QS=[
+["Samedi soir, tu fais quoi ?",["Je mets l'ambiance","Je reste chez moi, tranquille","Je suis le plan des autres","Je décide au dernier moment"]],
+["Ton message le plus fréquent ?",["Appelle-moi","Haha mdr","Ok","Je te réponds plus tard"]],
+["Tu perds au jeu. Réaction ?",["Revanche immédiate","Je rigole","Je dis rien, je prépare mon retour","Je change de jeu"]],
+["Ta qualité cachée ?",["Je ne lâche rien","Je sens les gens","Je vois les choses venir","Je m'adapte à tout"]],
+["Ton signe de reconnaissance ?",["Ma voix","Mon sourire","Mon regard","Mon style"]]];
+var $=function(i){return document.getElementById(i)};
+var st={name:"",i:0,sum:0,aura:null,score:0};
+function show(id){["home","quiz","scan","res"].forEach(function(s){$(s).classList.toggle("hide",s!==id)})}
+function key(){return "aura_"+new Date().toISOString().slice(0,10)}
+function used(){try{return parseInt(localStorage.getItem(key())||"0",10)}catch(e){return 0}}
+function bump(){try{localStorage.setItem(key(),String(used()+1))}catch(e){}}
+function premium(){try{return localStorage.getItem("aura_premium")==="1"}catch(e){return false}}
+function left(){return premium()?"Scans illimités":Math.max(0,3-used())+" scan(s) gratuit(s) aujourd'hui"}
+function hash(s){var h=7;for(var k=0;k<s.length;k++){h=(h*31+s.charCodeAt(k))%100003}return h}
+function paint(c){document.documentElement.style.setProperty("--a1",c[0]);document.documentElement.style.setProperty("--a2",c[1])}
+function ask(){
+  var q=QS[st.i];$("q").textContent=q[0];$("prog").style.width=(st.i/QS.length*100)+"%";
+  var o=$("opts");o.innerHTML="";
+  q[1].forEach(function(t,v){var b=document.createElement("button");b.className="opt";b.textContent=t;
+    b.onclick=function(){st.sum+=v*(st.i+2);st.i++;if(st.i<QS.length)ask();else finish()};o.appendChild(b)});
+}
+function finish(){
+  show("scan");
+  setTimeout(function(){
+    var h=hash(st.name.toLowerCase());
+    st.aura=AURAS[(h+st.sum)%8];
+    st.score=55+((h*7+st.sum*13)%45);
+    bump();paint(st.aura.c);
+    $("rname").textContent=st.name;$("rscore").textContent=st.score+"%";
+    $("rtitle").textContent="Aura "+st.aura.n;$("rtag").textContent=st.aura.t;
+    $("rflag").textContent=st.aura.f;$("rmatch").textContent=st.aura.m;
+    $("prem").classList.toggle("hide",premium());$("unlock").classList.toggle("hide",premium());
+    show("res");
+  },2200);
+}
+$("go").onclick=function(){
+  var n=$("prenom").value.trim();
+  if(!n){$("prenom").focus();return}
+  if(!premium()&&used()>=3){$("paywall").classList.remove("hide");return}
+  st.name=n;st.i=0;st.sum=0;show("quiz");ask();
+};
+$("again").onclick=function(){paint(["#8b5cf6","#ec4899"]);$("left").textContent=left();show("home")};
+$("unlock").onclick=function(){$("paywall").classList.remove("hide")};
+$("close").onclick=function(){$("paywall").classList.add("hide")};
+$("buy").onclick=function(){window.location.href=STRIPE_LINK};
+function card(cb){
+  var c=document.createElement("canvas");c.width=1080;c.height=1920;var x=c.getContext("2d");
+  var g=x.createLinearGradient(0,0,1080,1920);g.addColorStop(0,st.aura.c[0]);g.addColorStop(1,st.aura.c[1]);
+  x.fillStyle=g;x.fillRect(0,0,1080,1920);
+  var r=x.createRadialGradient(540,640,20,540,640,330);r.addColorStop(0,"rgba(255,255,255,.95)");r.addColorStop(1,"rgba(255,255,255,0)");
+  x.fillStyle=r;x.beginPath();x.arc(540,640,330,0,7);x.fill();
+  x.fillStyle="#fff";x.textAlign="center";
+  var F="'Bricolage Grotesque',system-ui,sans-serif";
+  x.font="700 56px "+F;x.fillText(st.name,540,1100);
+  x.font="800 230px "+F;x.fillText(st.score+"%",540,1330);
+  x.font="800 78px "+F;x.fillText("Aura "+st.aura.n,540,1470);
+  x.font="500 44px "+F;x.fillText(st.aura.t.length>34?st.aura.t.slice(0,34)+"…":st.aura.t,540,1560);
+  x.font="700 46px "+F;x.fillText("Et toi, c'est quoi ton aura ?",540,1760);
+  c.toBlob(cb,"image/png");
+}
+$("share").onclick=function(){
+  var txt="Mon aura : "+st.aura.n+" ("+st.score+"%). Et toi ?";
+  card(function(blob){
+    try{
+      var f=new File([blob],"aura.png",{type:"image/png"});
+      if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],text:txt});return}
+      if(navigator.share){navigator.share({text:txt});return}
+    }catch(e){}
+    try{navigator.clipboard.writeText(txt);$("share").textContent="Texte copié"}catch(e){$("share").textContent="Partage non disponible ici"}
+  });
+};
+var STRIPE_LINK="https://buy.stripe.com/REMPLACE_PAR_TON_LIEN",PREMIUM_CODE="REMPLACE_PAR_UN_CODE_SECRET";
+try{var pc=new URLSearchParams(location.search).get("premium");if(pc&&pc===PREMIUM_CODE){localStorage.setItem("aura_premium","1");history.replaceState(null,"",location.pathname)}}catch(e){}
+$("left").textContent=left();
+if(premium()){document.querySelectorAll(".ad").forEach(function(a){a.classList.add("hide")})}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){})}
+</script>
+</body>
+</html>
